@@ -113,7 +113,7 @@ Box.test(ts_log, type = 'Ljung-Box')
  
 
 
-# PART 1 Forecast Models (lines 112:300)----------------------------------------
+# PART 1 Forecast Models (lines 116:307)----------------------------------------
 # Based on the ACF and PACF, you will choose three linear models (MA, AR, or ARMA) and estimate them.
 # You will present the estimation results, show the ACF and PACF correlograms of residuals from
 # each specification, and verify they are white noise using Q-Test.
@@ -312,18 +312,57 @@ plot(log_arma21_6mth)
 
 
 # PART 2 -----------------------------------------------------------------------
+# You will describe your forecasting environment and make the following options: one-step ahead forecast (h=1),
+# split your sample into two parts. Using the first 90% sample as estimation sample and the 
+# rest as prediction sample.
 
-# Out of Sample - Part 2 -------------------------------------------------------
-train <- window(time_series, start = c(1960,1), end = c(2016,11))
-test <- window(time_series, start = c(2016,12), end = c(2023,3))
+# use the fixed sampling scheme, consider at least three models (at least one of them is ARMA
+# models, which could be AR,MA, or ARMA). You will use quadratic loss function and Mean Squared
+# Error (MSE) to choose the optimal forecast. You will implement the forecast optimality tests
+# (MPE and informational efficiency tests) for each model, discard any model if necessary, and add
+# a simpler forecast that is calculated by averaging the last four observations (call it simple average
+# 4 naive model), ft,1 = (yt + yt−1 + yt−2 + yt−3) /4. 
+
+# When necessary, you implement the test of unconditional predictability and explain which forecast 
+# is preferred. You will make combined forecasts from your top three to five models, which should 
+# include ARMA models and the simple average 4 naive model. Then use three linear combination schemes:
+# 1) an equal-weighted forecast,
+# 2) a forecast that weights each individual forecast by the inverse of its MSE,
+# 3) an OLS weighted optimal forecast. 
+
+# You will show the weights and MSE of these three combined forecasts in a table
+# format, similar to Table 9.8 on page 246, and comment on which one you prefer.
+
+# Out of Sample - Part 2 Split Sample into Two Parts ---------------------------
+# You will describe your forecasting environment and make the following options: one-step ahead forecast (h=1),
+# split your sample into two parts. Using the first 90% sample as estimation sample and the 
+# rest as prediction sample.
+# Not Logged:
+train <- floor(length(time_series) * 0.9)
+test <- time_series[1:train]
+prediction <- time_series[(train + 1):length(time_series)]
+
+# Logged:
+train_log <- floor(length(ts_log) * 0.9)
+test_log <- ts_log[1:train_log]
+prediction_log <- ts_log[(train_log + 1):length(ts_log)]
+
+
+# Consider at Least 3 Models and Implement the Following -----------------------
+# use the fixed sampling scheme, consider at least three models (at least one of them is ARMA
+# models, which could be AR,MA, or ARMA). You will use quadratic loss function and Mean Squared
+# Error (MSE) to choose the optimal forecast. You will implement the forecast optimality tests
+# (MPE and informational efficiency tests) for each model, discard any model if necessary, and add
+# a simpler forecast that is calculated by averaging the last four observations (call it simple average
+# 4 naive model), ft,1 = (yt + yt−1 + yt−2 + yt−3) /4. 
 
 # NOTE: WE NEED TO PICK A COUPLE OF THE MODELS FROM ABOVE. I CHOSE THESE RANDOMLY
 # ARMA(2,1) Model
 arma21_train <- arima(train, order=c(2,0,1)) #create model with training set
 arma21_fcst <- forecast(arma21_train, h = 6) #create forecast
 errors_arma21 <- forecast::accuracy(arma21_fcst, test) %>% as.data.frame()
-mae_arma21<-errors_arma21["MAE"][2,1]
-mae_arma21_train<-errors_arma21["MAE"][1,1]
+mae_arma21 <- errors_arma21["MAE"][2,1]
+mae_arma21_train <- errors_arma21["MAE"][1,1]
 
 # MA(2) Model
 ma2_train <- arima(train, order=c(0,0,2))
@@ -335,22 +374,21 @@ mae_ma2_train <- errors_ma2["MAE"][1,1]
 # AR(1) Model
 ar1_train <- arima(train, order=c(1,0,0))
 ar1_fcst <- forecast(ar1_train, h=20)
-errors_ar1<-forecast::accuracy(ar1_fcst, test) %>% as.data.frame()
-mae_ar1<-errors_ar1["MAE"][2,1]
+errors_ar1 <- forecast::accuracy(ar1_fcst, test) %>% as.data.frame()
+mae_ar1 <- errors_ar1["MAE"][2,1]
 mae_ar1_train<-errors_ar1["MAE"][1,1]
 
-#Build results table
-MAE_Training<-c(mae_arma21_train, mae_ar1_train, mae_ma2_train)
-MAE_Test<-c(mae_arma21, mae_ar1, mae_ma2)
-Model<-c("ARMA(2,1)","AR(1)", "MA(2)")
-forecasting_error_results<-data.frame(Model, MAE_Training, MAE_Test)
+# Simple Average 4 Naive Model
+sa4n <- c(rep(NA, 1), tail(test, -1))
+forecast_naive <- mean(tail(test, 4))
+summary(sa4n)
 
 
-#Stats Test: Validate Results from Out of Sample Evaluation --------------------
+#Stats Test: Validate Results for 3 Models -------------------------------------
 # t testing errors
-error_arma21<-arma21_fcst$residuals
-error_ar1<-ar1_fcst$residuals
-error_ma2<-ma2_fcst$residuals
+error_arma21 <- arma21_fcst$residuals
+error_ar1 <- ar1_fcst$residuals
+error_ma2 <- ma2_fcst$residuals
 
 # output results
 t.test(error_arma21, error_ar1)
@@ -359,7 +397,13 @@ t.test(error_ar1, error_ma2)
 
 
 
-
+# Combined Forecasts -----------------------------------------------------------
+# When necessary, you implement the test of unconditional predictability and explain which forecast 
+# is preferred. You will make combined forecasts from your top three to five models, which should 
+# include ARMA models and the simple average 4 naive model. Then use three linear combination schemes:
+# 1) an equal-weighted forecast,
+# 2) a forecast that weights each individual forecast by the inverse of its MSE,
+# 3) an OLS weighted optimal forecast. 
 
 
 
