@@ -21,7 +21,7 @@ library(urca)
 # In the first video, you need to find a time series data that interests you, 
 # is approximately stationary or can be made stationary, and has at least 100 observations.
 raw_data <- read_excel("ch3_COI_3MTBill.xls")
-View(raw_data)
+# View(raw_data)
 
 fcst <- raw_data %>%
   select(-'CPI') %>%
@@ -31,6 +31,10 @@ fcst <- raw_data %>%
 fcst <- fcst %>%
   mutate(date = date(date), #convert to date
          TB3 = as.numeric(TB3)) #convert rate to numeric
+
+fcst <- fcst %>%
+  filter(date > "2000-12-1")
+
 
 tb3 <- fcst %>%
   select(TB3)
@@ -49,7 +53,7 @@ ex_graph <- ggplot(fcst, mapping = aes(date, TB3)) +
   labs(x = "Date",
        y = "Rate",
        title = "3 Month T-Bill Rate") +
-  scale_x_date(date_breaks = "5 year",
+  scale_x_date(date_breaks = "2 year",
                date_label = "%Y") +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -71,7 +75,7 @@ ex_graph # view the graph
 # You will also stationarize the time series using first differencing when necessary.
 # Use augmented Dickey-Fuller tests to confirm you have got a stationary time series.
 
-time_series <- ts(fcst$TB3, frequency = 12, start = c(1960,1)) # I think we should only focus on 2010 forward
+time_series <- ts(fcst$TB3, frequency = 12, start = c(2001,1)) # I think we should only focus on 2010 forward
 adf.test(time_series) # initial Dickey-Fuller Test NEED HELP INTERPRETING
 adf_one <- adf.test(time_series) # saving as variable in case needed later
 
@@ -113,23 +117,22 @@ Box.test(ts_log, type = 'Ljung-Box')
 # Based on the ACF and PACF, you will choose three linear models (MA, AR, or ARMA) and estimate them.
 # You will present the estimation results, show the ACF and PACF correlograms of residuals from
 # each specification, and verify they are white noise using Q-Test.
-
-# Simple Forecast Model --------------------------------------------------------
-lm_1 <- lm(TB3~date, data = fcst)
-summary(lm_1)
-lm_aic <- AIC(lm_1)
-lm_bic <- BIC(lm_1) # referred to differently in class
-lm_1_plots <- checkresiduals(lm_1)
-lm_1_plots
+# You will summarize all the model estimation and evaluation in a table (refer to table 8.2 
+# on page 214 in your textbook) and make six-period ahead forecasts. You will plot the multistep
+# of forecasts and their correspondence bands for each specification and comment on your preferred model and why.
 
 # NOT LOGGED Complex Forecast Models (MA, AR, ARMA) ----------------------------
 # Create MA(1) Model 
 ma1 <- arima(time_series, order=c(0,0,1))
 summary(ma1)
 autoplot(ma1)
-checkresiduals(ma1)
+ma1_plots <- checkresiduals(ma1)
+ma1_plots
 aic_ma1 <- AIC(ma1)
 bic_ma1 <- BIC(ma1)
+# 6 month fcst
+ma1_6mth <- forecast(ma1, h = 6)
+plot(ma1_6mth)
 
 # Create MA(2) Model
 ma2 <- arima(time_series, order=c(0,0,2))
@@ -138,6 +141,9 @@ autoplot(ma2)
 checkresiduals(ma2)
 aic_ma2 <- AIC(ma2)
 bic_ma2 <- BIC(ma2)
+# 6 month fcst
+ma2_6mth <- forecast(ma2, h = 6)
+plot(ma2_6mth)
 
 # Create AR(1) model
 ar1 <- arima(time_series, order=c(1,0,0))
@@ -146,6 +152,9 @@ autoplot(ar1)
 checkresiduals(ar1)
 aic_ar1 <- AIC(ar1)
 bic_ar1 <- BIC(ar1)
+# 6 month fcst
+ar1_6mth <- forecast(ar1, h = 6)
+plot(ar1_6mth)
 
 # Create AR(2) model
 ar2 <- arima(time_series, order=c(2,0,0))
@@ -154,6 +163,9 @@ autoplot(ar2)
 checkresiduals(ar2)
 aic_ar2 <- AIC(ar2)
 bic_ar2 <- BIC(ar2)
+# 6 month fcst
+ar2_6mth <- forecast(ar2, h = 6)
+plot(ar2_6mth)
 
 # Create ARMA(1,1) model
 arma11 <- arima(time_series, order=c(1,0,1))
@@ -162,6 +174,9 @@ autoplot(arma11)
 checkresiduals(arma11)
 aic_arma11 <- AIC(arma11)
 bic_arma11 <- BIC(arma11)
+# 6 month fcst
+arma11_6mth <- forecast(arma11, h = 6)
+plot(arma11_6mth)
 
 # Create ARMA(2,2) model
 arma22 <- arima(time_series, order=c(2,0,2))
@@ -170,6 +185,9 @@ autoplot(arma22)
 checkresiduals(arma22)
 aic_arma22 <- AIC(arma22)
 bic_arma22 <- BIC(arma22)
+# 6 month fcst
+arma22_6mth <- forecast(arma22, h = 6)
+plot(arma22_6mth)
 
 # Create ARMA(1,2) model
 arma12 <- arima(time_series, order=c(1,0,2))
@@ -178,6 +196,9 @@ autoplot(arma12)
 checkresiduals(arma12)
 aic_arma12 <- AIC(arma12)
 bic_arma12 <- BIC(arma12)
+# 6 month fcst
+arma12_6mth <- forecast(arma12, h = 6)
+plot(arma12_6mth)
 
 # Create ARMA(2,1) model
 arma21 <- arima(time_series, order=c(2,0,1))
@@ -186,91 +207,109 @@ autoplot(arma21)
 checkresiduals(arma21)
 aic_arma21 <- AIC(arma21)
 bic_arma21 <- BIC(arma21)
+# 6 month fcst
+arma21_6mth <- forecast(arma21, h = 6)
+plot(ma1_6mth)
 
 
 # LOGGED Complex Forecast Models (MA, AR, ARMA) --------------------------------
 # Create MA(1) Model 
 log_ma1 <- arima(ts_log, order=c(0,0,1))
-summary(ma1)
-autoplot(ma1)
-checkresiduals(ma1)
-aic_ma1 <- AIC(ma1)
-bic_ma1 <- BIC(ma1)
+summary(log_ma1)
+autoplot(log_ma1)
+checkresiduals(log_ma1)
+aic_ma1 <- AIC(log_ma1)
+bic_ma1 <- BIC(log_ma1)
+# 6 month fcst
+log_ma1_6mth <- forecast(log_ma1, h = 6)
+plot(log_ma1_6mth)
 
 # Create MA(2) Model
 log_ma2 <- arima(ts_log, order=c(0,0,2))
-summary(ma2) 
-autoplot(ma2)
-checkresiduals(ma2)
-aic_ma2 <- AIC(ma2)
-bic_ma2 <- BIC(ma2)
+summary(log_ma2) 
+autoplot(log_ma2)
+checkresiduals(log_ma2)
+aic_ma2 <- AIC(log_ma2)
+bic_ma2 <- BIC(log_ma2)
+# 6 month fcst
+log_ma2_6mth <- forecast(log_ma2, h = 6)
+plot(log_ma2_6mth)
 
 # Create AR(1) model
 log_ar1 <- arima(ts_log, order=c(1,0,0))
-summary(ar1)
-autoplot(ar1)
-checkresiduals(ar1)
-aic_ar1 <- AIC(ar1)
-bic_ar1 <- BIC(ar1)
+summary(log_ar1)
+autoplot(log_ar1)
+checkresiduals(log_ar1)
+aic_ar1 <- AIC(log_ar1)
+bic_ar1 <- BIC(log_ar1)
+# 6 month fcst
+log_ar1_6mth <- forecast(log_ar1, h = 6)
+plot(log_ar1_6mth)
 
 # Create AR(2) model
 log_ar2 <- arima(ts_log, order=c(2,0,0))
-summary(ar2)
-autoplot(ar2)
-checkresiduals(ar2)
-aic_ar2 <- AIC(ar2)
-bic_ar2 <- BIC(ar2)
+summary(log_ar2)
+autoplot(log_ar2)
+checkresiduals(log_ar2)
+aic_ar2 <- AIC(log_ar2)
+bic_ar2 <- BIC(log_ar2)
+# 6 month fcst
+log_ar2_6mth <- forecast(log_ar2, h = 6)
+plot(log_ar2_6mth)
 
 # Create ARMA(1,1) model
 log_arma11 <- arima(ts_log, order=c(1,0,1))
-summary(arma11)
-autoplot(arma11)
-checkresiduals(arma11)
-aic_arma11 <- AIC(arma11)
-bic_arma11 <- BIC(arma11)
+summary(log_arma11)
+autoplot(log_arma11)
+checkresiduals(log_arma11)
+aic_arma11 <- AIC(log_arma11)
+bic_arma11 <- BIC(log_arma11)
+# 6 month fcst
+log_arma11_6mth <- forecast(log_arma11, h = 6)
+plot(log_arma11_6mth)
 
 # Create ARMA(2,2) model
 log_arma22 <- arima(ts_log, order=c(2,0,2))
-summary(arma22) 
-autoplot(arma22)
-checkresiduals(arma22)
-aic_arma22 <- AIC(arma22)
-bic_arma22 <- BIC(arma22)
+summary(log_arma22) 
+autoplot(log_arma22)
+checkresiduals(log_arma22)
+aic_arma22 <- AIC(log_arma22)
+bic_arma22 <- BIC(log_arma22)
+# 6 month fcst
+log_arma22_6mth <- forecast(log_arma22, h = 6)
+plot(log_arma22_6mth)
 
 # Create ARMA(1,2) model
 log_arma12 <- arima(ts_log, order=c(1,0,2))
-summary(arma12)
-autoplot(arma12)
-checkresiduals(arma12)
-aic_arma12 <- AIC(arma12)
-bic_arma12 <- BIC(arma12)
+summary(log_arma12)
+autoplot(log_arma12)
+checkresiduals(log_arma12)
+aic_arma12 <- AIC(log_arma12)
+bic_arma12 <- BIC(log_arma12)
+# 6 month fcst
+log_arma12_6mth <- forecast(log_arma12, h = 6)
+plot(log_arma12_6mth)
 
 # Create ARMA(2,1) model
 log_arma21 <- arima(ts_log, order=c(2,0,1))
-summary(arma21)
-autoplot(arma21)
-checkresiduals(arma21)
-aic_arma21 <- AIC(arma21)
-bic_arma21 <- BIC(arma21)
+summary(log_arma21)
+autoplot(log_arma21)
+checkresiduals(log_arma21)
+aic_arma21 <- AIC(log_arma21)
+bic_arma21 <- BIC(log_arma21)
+# 6 month fcst
+log_arma21_6mth <- forecast(log_arma21, h = 6)
+plot(log_arma21_6mth)
 
 # Model Estimates Table --------------------------------------------------------
-
-
-
-
-
-# 6 period ahead forecasts -----------------------------------------------------
-
-
-
-
-
-# Plots: multistep of forecasts and correspondance bands -----------------------
-
-
-
+# ACTION: Either build this out in Rstudio or put together a regular table in the deck
 
 # END OF PART 1
+
+
+
+
+
 
 # PART 2 -----------------------------------------------------------------------
 
