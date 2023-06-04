@@ -78,11 +78,13 @@ ex_graph # view the graph
 time_series <- ts(fcst$TB3, frequency = 12, start = c(2001,1))
 adf.test(time_series)
 adf_one <- adf.test(time_series)
+print('Based on this Dickey-Fuller Test, we fail to reject the null hypothesis and this time series is not stationary. To combat this, we will take a log-difference time series.')
 
 # Take log difference
 ts_log <- diff(log(time_series))
 adf.test(ts_log)
 adf_two <- adf.test(ts_log)
+print('Based on this Dickey-Fuller Test, we reject the null hypothesis and our data has been made stationary using the log-difference time series data set.')
 
 # KPSS test for Stationarity
 time_series %>% ur.kpss() %>% summary()
@@ -96,13 +98,6 @@ ts_log %>% ur.kpss() %>% summary()
 # ACF, PACF, White-Noise -------------------------------------------------------
 # Based on the ACF and PACF, you will choose three linear models (MA, AR, or ARMA) 
 # and estimate them.
-
-# Time Series
-acf(time_series, lag.max = 20, plot = TRUE)
-acf(time_series, lag.max = 20, plot = FALSE) # prints autocorrelations
-pacf(time_series, lag.max = 20, plot = TRUE)
-pacf(time_series, lag.max = 20, plot = FALSE) # prints autocorrelations
-Box.test(time_series, type = "Ljung-Box")
 
 # Logged Time Series
 acf(ts_log, lag.max = 20, plot = TRUE)
@@ -264,7 +259,7 @@ test_log <- ts_log[241:266]
 
 # NOTE: WE NEED TO PICK A COUPLE OF THE MODELS FROM ABOVE. I CHOSE THESE RANDOMLY
 # ARMA(2,1) Model
-arma21_train <- arima(train, order=c(2,0,1)) #create model with training set
+arma12_train <- arima(train, order=c(1,0,2)) #create model with training set
 arma21_fcst <- forecast(arma21_train, h = 6) #create forecast
 errors_arma21 <- forecast::accuracy(arma21_fcst, test) %>% as.data.frame()
 mae_arma21 <- errors_arma21["MAE"][2,1]
@@ -326,6 +321,14 @@ t.test(error_ar1, error_ma2)
 # ACF, PACF, White-Noise
 # Based on the ACF and PACF, you will choose three linear models (MA, AR, or ARMA) 
 # and estimate them.
+
+# Time Series
+acf(time_series, lag.max = 20, plot = TRUE)
+acf(time_series, lag.max = 20, plot = FALSE) # prints autocorrelations
+pacf(time_series, lag.max = 20, plot = TRUE)
+pacf(time_series, lag.max = 20, plot = FALSE) # prints autocorrelations
+Box.test(time_series, type = "Ljung-Box")
+
 
 # Time Series
 acf(time_series, lag.max = 20, plot = TRUE)
