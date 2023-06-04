@@ -119,49 +119,8 @@ Box.test(ts_log, type = 'Ljung-Box')
 # of forecasts and their correspondence bands for each specification and comment on your preferred model and why.
 
 # LOGGED Complex Forecast Models (MA, AR, ARMA) --------------------------------
-# Create MA(1) Model 
-log_ma1 <- arima(ts_log, order=c(0,0,1))
-summary(log_ma1)
-autoplot(log_ma1)
-checkresiduals(log_ma1)
-aic_ma1 <- AIC(log_ma1)
-bic_ma1 <- BIC(log_ma1)
-# 6 month fcst
-log_ma1_6mth <- forecast(log_ma1, h = 6)
-plot(log_ma1_6mth)
+# Based on the ACF/PACF, we are focusing on the ARMA models
 
-# Create MA(2) Model
-log_ma2 <- arima(ts_log, order=c(0,0,2))
-summary(log_ma2) 
-autoplot(log_ma2)
-checkresiduals(log_ma2)
-aic_ma2 <- AIC(log_ma2)
-bic_ma2 <- BIC(log_ma2)
-# 6 month fcst
-log_ma2_6mth <- forecast(log_ma2, h = 6)
-plot(log_ma2_6mth)
-
-# Create AR(1) model
-log_ar1 <- arima(ts_log, order=c(1,0,0))
-summary(log_ar1)
-autoplot(log_ar1)
-checkresiduals(log_ar1)
-aic_ar1 <- AIC(log_ar1)
-bic_ar1 <- BIC(log_ar1)
-# 6 month fcst
-log_ar1_6mth <- forecast(log_ar1, h = 6)
-plot(log_ar1_6mth)
-
-# Create AR(2) model
-log_ar2 <- arima(ts_log, order=c(2,0,0))
-summary(log_ar2)
-autoplot(log_ar2)
-checkresiduals(log_ar2)
-aic_ar2 <- AIC(log_ar2)
-bic_ar2 <- BIC(log_ar2)
-# 6 month fcst
-log_ar2_6mth <- forecast(log_ar2, h = 6)
-plot(log_ar2_6mth)
 
 # Create ARMA(1,1) model
 log_arma11 <- arima(ts_log, order=c(1,0,1))
@@ -427,6 +386,51 @@ bic_arma21 <- BIC(arma21)
 # 6 month fcst
 arma21_6mth <- forecast(arma21, h = 6)
 plot(ma1_6mth)
+
+# LOGGED MODELS THAT WERE DISCARDED --------------------------------------------
+# Create MA(1) Model 
+log_ma1 <- arima(ts_log, order=c(0,0,1))
+summary(log_ma1)
+autoplot(log_ma1)
+checkresiduals(log_ma1)
+aic_ma1 <- AIC(log_ma1)
+bic_ma1 <- BIC(log_ma1)
+# 6 month fcst
+log_ma1_6mth <- forecast(log_ma1, h = 6)
+plot(log_ma1_6mth)
+
+# Create MA(2) Model
+log_ma2 <- arima(ts_log, order=c(0,0,2))
+summary(log_ma2) 
+autoplot(log_ma2)
+checkresiduals(log_ma2)
+aic_ma2 <- AIC(log_ma2)
+bic_ma2 <- BIC(log_ma2)
+# 6 month fcst
+log_ma2_6mth <- forecast(log_ma2, h = 6)
+plot(log_ma2_6mth)
+
+# Create AR(1) model
+log_ar1 <- arima(ts_log, order=c(1,0,0))
+summary(log_ar1)
+autoplot(log_ar1)
+checkresiduals(log_ar1)
+aic_ar1 <- AIC(log_ar1)
+bic_ar1 <- BIC(log_ar1)
+# 6 month fcst
+log_ar1_6mth <- forecast(log_ar1, h = 6)
+plot(log_ar1_6mth)
+
+# Create AR(2) model
+log_ar2 <- arima(ts_log, order=c(2,0,0))
+summary(log_ar2)
+autoplot(log_ar2)
+checkresiduals(log_ar2)
+aic_ar2 <- AIC(log_ar2)
+bic_ar2 <- BIC(log_ar2)
+# 6 month fcst
+log_ar2_6mth <- forecast(log_ar2, h = 6)
+plot(log_ar2_6mth)
 
 # Part two ---------------------------------------------------------------------
 # Setting up train (90%) and test (10%)
