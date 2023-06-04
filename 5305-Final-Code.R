@@ -75,20 +75,22 @@ ex_graph # view the graph
 # You will also stationarize the time series using first differencing when necessary.
 # Use augmented Dickey-Fuller tests to confirm you have got a stationary time series.
 
-time_series <- ts(fcst$TB3, frequency = 12, start = c(2001,1)) # I think we should only focus on 2010 forward
-adf.test(time_series) # initial Dickey-Fuller Test NEED HELP INTERPRETING
-adf_one <- adf.test(time_series) # saving as variable in case needed later
+time_series <- ts(fcst$TB3, frequency = 12, start = c(2001,1))
+adf.test(time_series)
+adf_one <- adf.test(time_series)
 
-# Take log difference in case this is needed - not sure if it is
+# Take log difference
 ts_log <- diff(log(time_series))
-adf.test(ts_log) # log Dickey-Fuller Test NEED HELP INTERPRETING
-adf_two <- adf.test(ts_log) # saving as variable in case needed later
+adf.test(ts_log)
+adf_two <- adf.test(ts_log)
 
-# KPSS test for Stationarity - not sure if needed
+# KPSS test for Stationarity
 time_series %>% ur.kpss() %>% summary()
 ts_log %>% ur.kpss() %>% summary()
 
-# ACTION: DETERMINE HOW TO INTERPRET ADF AND IF LOG DIFF IS NEEDED.
+# Summary: based on ADF, original time series is not stationary.
+# To combat this, we are taking a log-difference which makes our data stationary
+# and passes the Dickey-Fuller test. Note that we filtered out data prior to 2001.
 
 
 # ACF, PACF, White-Noise -------------------------------------------------------
@@ -110,7 +112,7 @@ pacf(ts_log, lag.max = 20, plot = FALSE) # prints autocorrelations
 Box.test(ts_log, type = 'Ljung-Box')
 
 # ACTION: NEED TO DETERMINE WHAT INTEREPRETATIONS ARE FOR ACF/PACF...
- 
+# Monica to take this this...
 
 
 # PART 1 Forecast Models (lines 116:307)----------------------------------------
@@ -120,97 +122,6 @@ Box.test(ts_log, type = 'Ljung-Box')
 # You will summarize all the model estimation and evaluation in a table (refer to table 8.2 
 # on page 214 in your textbook) and make six-period ahead forecasts. You will plot the multistep
 # of forecasts and their correspondence bands for each specification and comment on your preferred model and why.
-
-# NOT LOGGED Complex Forecast Models (MA, AR, ARMA) ----------------------------
-# Create MA(1) Model 
-ma1 <- arima(time_series, order=c(0,0,1))
-summary(ma1)
-autoplot(ma1)
-ma1_plots <- checkresiduals(ma1)
-ma1_plots
-aic_ma1 <- AIC(ma1)
-bic_ma1 <- BIC(ma1)
-# 6 month fcst
-ma1_6mth <- forecast(ma1, h = 6)
-plot(ma1_6mth)
-
-# Create MA(2) Model
-ma2 <- arima(time_series, order=c(0,0,2))
-summary(ma2) 
-autoplot(ma2)
-checkresiduals(ma2)
-aic_ma2 <- AIC(ma2)
-bic_ma2 <- BIC(ma2)
-# 6 month fcst
-ma2_6mth <- forecast(ma2, h = 6)
-plot(ma2_6mth)
-
-# Create AR(1) model
-ar1 <- arima(time_series, order=c(1,0,0))
-summary(ar1)
-autoplot(ar1)
-checkresiduals(ar1)
-aic_ar1 <- AIC(ar1)
-bic_ar1 <- BIC(ar1)
-# 6 month fcst
-ar1_6mth <- forecast(ar1, h = 6)
-plot(ar1_6mth)
-
-# Create AR(2) model
-ar2 <- arima(time_series, order=c(2,0,0))
-summary(ar2)
-autoplot(ar2)
-checkresiduals(ar2)
-aic_ar2 <- AIC(ar2)
-bic_ar2 <- BIC(ar2)
-# 6 month fcst
-ar2_6mth <- forecast(ar2, h = 6)
-plot(ar2_6mth)
-
-# Create ARMA(1,1) model
-arma11 <- arima(time_series, order=c(1,0,1))
-summary(arma11)
-autoplot(arma11)
-checkresiduals(arma11)
-aic_arma11 <- AIC(arma11)
-bic_arma11 <- BIC(arma11)
-# 6 month fcst
-arma11_6mth <- forecast(arma11, h = 6)
-plot(arma11_6mth)
-
-# Create ARMA(2,2) model
-arma22 <- arima(time_series, order=c(2,0,2))
-summary(arma22) 
-autoplot(arma22)
-checkresiduals(arma22)
-aic_arma22 <- AIC(arma22)
-bic_arma22 <- BIC(arma22)
-# 6 month fcst
-arma22_6mth <- forecast(arma22, h = 6)
-plot(arma22_6mth)
-
-# Create ARMA(1,2) model
-arma12 <- arima(time_series, order=c(1,0,2))
-summary(arma12)
-autoplot(arma12)
-checkresiduals(arma12)
-aic_arma12 <- AIC(arma12)
-bic_arma12 <- BIC(arma12)
-# 6 month fcst
-arma12_6mth <- forecast(arma12, h = 6)
-plot(arma12_6mth)
-
-# Create ARMA(2,1) model
-arma21 <- arima(time_series, order=c(2,0,1))
-summary(arma21)
-autoplot(arma21)
-checkresiduals(arma21)
-aic_arma21 <- AIC(arma21)
-bic_arma21 <- BIC(arma21)
-# 6 month fcst
-arma21_6mth <- forecast(arma21, h = 6)
-plot(ma1_6mth)
-
 
 # LOGGED Complex Forecast Models (MA, AR, ARMA) --------------------------------
 # Create MA(1) Model 
@@ -302,13 +213,11 @@ log_arma21_6mth <- forecast(log_arma21, h = 6)
 plot(log_arma21_6mth)
 
 # Model Estimates Table --------------------------------------------------------
-# ACTION: Either build this out in Rstudio or put together a regular table in the deck
-
-# END OF PART 1
+# This part was built in our slide deck...
 
 
-
-
+# END OF PART 1 ----------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 # PART 2 -----------------------------------------------------------------------
@@ -337,19 +246,16 @@ plot(log_arma21_6mth)
 # You will describe your forecasting environment and make the following options: one-step ahead forecast (h=1),
 # split your sample into two parts. Using the first 90% sample as estimation sample and the 
 # rest as prediction sample.
-# Not Logged:
-train <- floor(length(time_series) * 0.9)
-test <- time_series[1:train]
-prediction <- time_series[(train + 1):length(time_series)]
 
+# Setting up train (90%) and test (10%)
 # Logged:
-train_log <- floor(length(ts_log) * 0.9)
-test_log <- ts_log[1:train_log]
-prediction_log <- ts_log[(train_log + 1):length(ts_log)]
+train_log <- ts_log[1:240]
+test_log <- ts_log[241:266]
+
 
 
 # Consider at Least 3 Models and Implement the Following -----------------------
-# use the fixed sampling scheme, consider at least three models (at least one of them is ARMA
+# Use the fixed sampling scheme, consider at least three models (at least one of them is ARMA
 # models, which could be AR,MA, or ARMA). You will use quadratic loss function and Mean Squared
 # Error (MSE) to choose the optimal forecast. You will implement the forecast optimality tests
 # (MPE and informational efficiency tests) for each model, discard any model if necessary, and add
@@ -410,13 +316,120 @@ t.test(error_ar1, error_ma2)
 
 
 
+# END OF PART 2
 
 
+# Code Graveyard ---------------------------------------------------------------
+# This section houses test code and models we ran that we determined to not be 
+# immediately relevant. The remaining code in this file is only for reference.
+
+# ACF, PACF, White-Noise
+# Based on the ACF and PACF, you will choose three linear models (MA, AR, or ARMA) 
+# and estimate them.
+
+# Time Series
+acf(time_series, lag.max = 20, plot = TRUE)
+acf(time_series, lag.max = 20, plot = FALSE) # prints autocorrelations
+pacf(time_series, lag.max = 20, plot = TRUE)
+pacf(time_series, lag.max = 20, plot = FALSE) # prints autocorrelations
+Box.test(time_series, type = "Ljung-Box")
 
 
+# NOT LOGGED Complex Forecast Models (MA, AR, ARMA)
+# Create MA(1) Model 
+ma1 <- arima(time_series, order=c(0,0,1))
+summary(ma1)
+autoplot(ma1)
+ma1_plots <- checkresiduals(ma1)
+ma1_plots
+aic_ma1 <- AIC(ma1)
+bic_ma1 <- BIC(ma1)
+# 6 month fcst
+ma1_6mth <- forecast(ma1, h = 6)
+plot(ma1_6mth)
 
+# Create MA(2) Model
+ma2 <- arima(time_series, order=c(0,0,2))
+summary(ma2) 
+autoplot(ma2)
+checkresiduals(ma2)
+aic_ma2 <- AIC(ma2)
+bic_ma2 <- BIC(ma2)
+# 6 month fcst
+ma2_6mth <- forecast(ma2, h = 6)
+plot(ma2_6mth)
 
+# Create AR(1) model
+ar1 <- arima(time_series, order=c(1,0,0))
+summary(ar1)
+autoplot(ar1)
+checkresiduals(ar1)
+aic_ar1 <- AIC(ar1)
+bic_ar1 <- BIC(ar1)
+# 6 month fcst
+ar1_6mth <- forecast(ar1, h = 6)
+plot(ar1_6mth)
 
+# Create AR(2) model
+ar2 <- arima(time_series, order=c(2,0,0))
+summary(ar2)
+autoplot(ar2)
+checkresiduals(ar2)
+aic_ar2 <- AIC(ar2)
+bic_ar2 <- BIC(ar2)
+# 6 month fcst
+ar2_6mth <- forecast(ar2, h = 6)
+plot(ar2_6mth)
+
+# Create ARMA(1,1) model
+arma11 <- arima(time_series, order=c(1,0,1))
+summary(arma11)
+autoplot(arma11)
+checkresiduals(arma11)
+aic_arma11 <- AIC(arma11)
+bic_arma11 <- BIC(arma11)
+# 6 month fcst
+arma11_6mth <- forecast(arma11, h = 6)
+plot(arma11_6mth)
+
+# Create ARMA(2,2) model
+arma22 <- arima(time_series, order=c(2,0,2))
+summary(arma22) 
+autoplot(arma22)
+checkresiduals(arma22)
+aic_arma22 <- AIC(arma22)
+bic_arma22 <- BIC(arma22)
+# 6 month fcst
+arma22_6mth <- forecast(arma22, h = 6)
+plot(arma22_6mth)
+
+# Create ARMA(1,2) model
+arma12 <- arima(time_series, order=c(1,0,2))
+summary(arma12)
+autoplot(arma12)
+checkresiduals(arma12)
+aic_arma12 <- AIC(arma12)
+bic_arma12 <- BIC(arma12)
+# 6 month fcst
+arma12_6mth <- forecast(arma12, h = 6)
+plot(arma12_6mth)
+
+# Create ARMA(2,1) model
+arma21 <- arima(time_series, order=c(2,0,1))
+summary(arma21)
+autoplot(arma21)
+checkresiduals(arma21)
+aic_arma21 <- AIC(arma21)
+bic_arma21 <- BIC(arma21)
+# 6 month fcst
+arma21_6mth <- forecast(arma21, h = 6)
+plot(ma1_6mth)
+
+# Part two ---------------------------------------------------------------------
+# Setting up train (90%) and test (10%)
+# Not Logged:
+train <- time_series[1:240]
+test <- time_series[241:267]
 
 
 
