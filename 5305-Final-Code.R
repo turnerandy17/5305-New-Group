@@ -1,7 +1,7 @@
 # Matthew Brodie, Monica Cao, Andy Turner
 # OMSBA 5305 - DTC
 # 6/3/2/3
-
+ 
 # Import Packages --------------------------------------------------------------
 library(readxl)
 library(dplyr)
@@ -463,11 +463,6 @@ bic_ar2 <- BIC(log_ar2)
 log_ar2_6mth <- forecast(log_ar2, h = 6)
 plot(log_ar2_6mth)
 
-# Part two ---------------------------------------------------------------------
-# Setting up train (90%) and test (10%)
-# Not Logged:
-train <- time_series[1:240]
-test <- time_series[241:267]
 
 
 
