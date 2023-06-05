@@ -1,7 +1,7 @@
 # Matthew Brodie, Monica Cao, Andy Turner
 # OMSBA 5305 - DTC
 # 6/3/2/3
- 
+
 # Import Packages --------------------------------------------------------------
 library(readxl)
 library(dplyr)
@@ -276,7 +276,7 @@ fcst3 <- numeric(27)
 ferror3 <- numeric(27)
 loss3 <- numeric(27)
 
-model_3 <- dynlm(train_log ~ stats::lag(train_log, -1) + stats::lag(train_log, -1),
+model_3 <- dynlm(train_log ~ stats::lag(train_log, -1) + stats::lag(train_log, -4),
                  start = c(2001,1),
                  end = c(2020,11))
 summary(model_3)
@@ -300,6 +300,11 @@ summary(IETest_3) # Informal Efficiency Test Model 3
 fcst4 <- numeric(27)
 ferror4 <- numeric(27)
 loss4 <- numeric(27)
+
+model_4 <- dynlm(train_log ~ stats::lag(train_log, -1) + stats::lag(train_log, -1),
+                 start = c(2001,1),
+                 end = c(2020,11))
+summary(model_4)
 
 for (i in 1:27){
   fcst4[i] <- (train_log[239 + i] + 
@@ -350,6 +355,124 @@ summary(mpetest_comb_1)
 IETest_comb_1 <- lm(ferror_comb_1 ~ fcst_comb_1)
 summary(IETest_comb_1) # Informal Efficiency Test Combination Model 1
 
+# Equal Weighted Forecast ------------------------------------------------------
+forecast_1 <- as.vector(fitted(model_1))
+forecast_2 <- as.vector(fitted(model_2))
+forecast_3 <- as.vector(fitted(model_3))
+forecast_4 <- as.vector(fitted(model_4))
+
+# Find the minimum length among the forecast vectors
+min_length <- min(length(forecast_1), length(forecast_2), length(forecast_3), length(forecast_4))
+
+# Trim the forecast vectors to the minimum length
+forecast_1 <- forecast_1[1:min_length]
+forecast_2 <- forecast_2[1:min_length]
+forecast_3 <- forecast_3[1:min_length]
+forecast_4 <- forecast_4[1:min_length]
+
+# Calculate equal weights
+n_models <- 4
+weights <- rep(1/n_models, n_models)
+combined_forecast <- (forecast_1 + forecast_2 + forecast_3 + forecast_4) / n_models
+
+fcst_ew <- numeric(27)
+ferror_ew <- numeric(27)
+loss_ew <- numeric(27)
+
+fcst_ew <- combined_forecast[(length(combined_forecast) - 26):length(combined_forecast)]
+
+for (i in 1:14) {
+  ferror_ew[i] <- train_log[length(train_log) - 14 + i] - fcast_ew[i]
+  loss_ew[i] <- ferror_ew[i]^2
+}
+
+MSE_ew <- mean(loss_ew)
+paste('MSE Combination Equal Weights Fcst:', MSE_ew)
+
+mpetest_ew <- lm(ferror_ew ~1)
+summary(mpetest_ew)
+IETest_ew <- lm(ferror_ew ~ fcst_ew)
+summary(IETest_ew) # Informal Efficiency Test Combination Equal Weights
+
+# Weighted Individual by Inverse MSE -------------------------------------------
+forecast_1_iMSE <- as.vector(fitted(model_1))
+forecast_2_iMSE <- as.vector(fitted(model_2))
+forecast_3_iMSE <- as.vector(fitted(model_3))
+forecast_4_iMSE <- as.vector(fitted(model_4))
+
+# Find the minimum length among the forecast vectors
+min_length <- min(length(forecast_1_iMSE), length(forecast_2_iMSE), length(forecast_3_iMSE), length(forecast_4_iMSE))
+
+# Trim the forecast vectors to the minimum length
+forecast_1_iMSE <- forecast_1[1:min_length]
+forecast_2_iMSE <- forecast_2[1:min_length]
+forecast_3_iMSE <- forecast_3[1:min_length]
+forecast_4_iMSE <- forecast_4[1:min_length]
+
+# Calculate inverse of MSE
+mse_inverse <- 1 / c(MSE1, MSE2, MSE3, MSE4)
+mse_inverse <- na.omit(mse_inverse)
+
+fcst_iMSE <- numeric(27)
+ferror_iMSE <- numeric(27)
+loss_iMSE <- numeric(27)
+
+combined_iMSE_forecast <- forecast_1_iMSE + forecast_2_iMSE + forecast_3_iMSE + forecast_4_iMSE
+
+fcst_iMSE <- combined_iMSE_forecast[(length(combined_iMSE_forecast) - 26):length(combined_iMSE_forecast)]
+
+for (i in 1:14) {
+  ferror_iMSE[i] <- train_log[length(train_log) - 14 + i] - fcast_iMSE[i]
+  loss_iMSE[i] <- ferror_iMSE[i]^2
+}
+
+MSE_iMSE <- mean(loss_iMSE)
+
+MSE_iMSE <- mean(loss_iMSE)
+paste('MSE Combination Equal Weights Fcst:', MSE_iMSE)
+
+mpetest_iMSE <- lm(ferror_iMSE ~1)
+summary(mpetest_iMSE)
+IETest_iMSE <- lm(ferror_ew ~ fcst_iMSE)
+summary(IETest_iMSE) # Informal Efficiency Test Combination Equal Weights
+
+
+# OLS Weighted Optimal Fcst ----------------------------------------------------
+forecast_1_ols <- as.vector(fitted(model_1))
+forecast_2_ols <- as.vector(fitted(model_2))
+forecast_3_ols <- as.vector(fitted(model_3))
+forecast_4_ols <- as.vector(fitted(model_4))
+
+# Find the minimum length among the forecast vectors
+min_length <- min(length(forecast_1_ols), length(forecast_2_ols), length(forecast_3_ols), length(forecast_4_ols))
+
+# Trim the forecast vectors to the minimum length
+forecast_1_ols <- forecast_1[1:min_length]
+forecast_2_ols <- forecast_2[1:min_length]
+forecast_3_ols <- forecast_3[1:min_length]
+forecast_4_ols <- forecast_4[1:min_length]
+
+# Calculate equal weights
+combined_ols_forecast <- (forecast_1_ols + forecast_2_ols + forecast_3_ols + forecast_4_ols)
+
+fcst_ols <- numeric(27)
+ferror_ols <- numeric(27)
+loss_ols <- numeric(27)
+
+fcst_ols <- combined_ols_forecast[(length(combined_ols_forecast) - 26):length(combined_ols_forecast)]
+
+for (i in 1:14) {
+  ferror_ols[i] <- train_log[length(train_log) - 14 + i] - fcst_ols[i]
+  loss_ols[i] <- ferror_ols[i]^2
+}
+
+MSE_ols <- mean(loss_ols)
+paste('MSE Combination Ordinary Lease Squares (OLS) Fcst:', MSE_ols)
+
+mpetest_ols <- lm(ferror_ols ~1)
+summary(mpetest_ols)
+IETest_ols <- lm(ferror_ols ~ fcst_ols)
+summary(IETest_ols) # Informal Efficiency Test Combination Equal Weights
 
 # END OF PART 2
 
