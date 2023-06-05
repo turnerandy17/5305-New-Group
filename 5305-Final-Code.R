@@ -174,12 +174,12 @@ plot(log_arma21_6mth)
 # ------------------------------------------------------------------------------
 
 
-# PART 2 -----------------------------------------------------------------------
+# PART 2 Full Project Spec -----------------------------------------------------
 # You will describe your forecasting environment and make the following options: one-step ahead forecast (h=1),
 # split your sample into two parts. Using the first 90% sample as estimation sample and the 
 # rest as prediction sample.
 
-# use the fixed sampling scheme, consider at least three models (at least one of them is ARMA
+# Use the fixed sampling scheme, consider at least three models (at least one of them is ARMA
 # models, which could be AR,MA, or ARMA). You will use quadratic loss function and Mean Squared
 # Error (MSE) to choose the optimal forecast. You will implement the forecast optimality tests
 # (MPE and informational efficiency tests) for each model, discard any model if necessary, and add
@@ -192,9 +192,9 @@ plot(log_arma21_6mth)
 # 1) an equal-weighted forecast,
 # 2) a forecast that weights each individual forecast by the inverse of its MSE,
 # 3) an OLS weighted optimal forecast. 
-
 # You will show the weights and MSE of these three combined forecasts in a table
 # format, similar to Table 9.8 on page 246, and comment on which one you prefer.
+
 
 # Out of Sample - Part 2 Split Sample into Two Parts ---------------------------
 # You will describe your forecasting environment and make the following options: one-step ahead forecast (h=1),
@@ -218,9 +218,7 @@ train_log <- ts(diff(log(fcst$TB3)), frequency = 12, start = c(2001,1))
 # a simpler forecast that is calculated by averaging the last four observations (call it simple average
 # 4 naive model), ft,1 = (yt + yt−1 + yt−2 + yt−3) /4. 
 
-# NEED TO UPDATE for I in X to match dataset...
-
-# Model 1 Fixed Scheme - ARMA 2 ---------------------
+# Model 1 Fixed Scheme - ARMA 2 ------------------------------------------------
 # setting vectors = to 27 values because 10% of our data is 27 values
 fcst1 <- numeric(27)
 ferror1 <- numeric(27)
@@ -246,9 +244,59 @@ summary(mpetest_1)
 IETest_1 <- lm(ferror1 ~ fcst1)
 summary(IETest_1) # Informal Efficiency Test Model 1
 
+# Model 2 Fixed Scheme -  ------------------------------------------------
+# setting vectors = to 27 values because 10% of our data is 27 values
+fcst2 <- numeric(27)
+ferror2 <- numeric(27)
+loss2 <- numeric(27)
 
+model_2 <- dynlm(train_log ~ stats::lag(train_log, -1) + stats::lag(train_log, -2),
+                 start = c(2001,1),
+                 end = c(2020,11))
+summary(model_1)
 
-# Model 4 (Average 4) -----------------
+for (i in 1:27) {
+  fcst2[i] <- coef(model_1)[1] + coef(model_1)[2] * train_log[239+i] + coef(model_1)[3] * train_log[239+i] 
+  ferror2[i] <- train_log[239+i] - fcst1[i]
+  loss2[i] <- ferror1[i]^2
+}
+
+cbind(fcst2, ferror2, loss2)
+MSE2 <- mean(loss2)
+paste('MSE Model 1 Fixed Scheme: ', MSE2)
+
+mpetest_2 <- lm(ferror2 ~ 1)
+summary(mpetest_2)
+IETest_2 <- lm(ferror2 ~ fcst2)
+summary(IETest_2) # Informal Efficiency Test Model 2
+
+# Model 3 Fixed Scheme -  ------------------------------------------------
+# setting vectors = to 27 values because 10% of our data is 27 values
+fcst3 <- numeric(27)
+ferror3 <- numeric(27)
+loss3 <- numeric(27)
+
+model_3 <- dynlm(train_log ~ stats::lag(train_log, -1) + stats::lag(train_log, -2),
+                 start = c(2001,1),
+                 end = c(2020,11))
+summary(model_3)
+
+for (i in 1:27) {
+  fcst3[i] <- coef(model_1)[1] + coef(model_1)[2] * train_log[239+i] + coef(model_1)[3] * train_log[239+i] 
+  ferror3[i] <- train_log[239+i] - fcst1[i]
+  loss3[i] <- ferror1[i]^2
+}
+
+cbind(fcst3, ferror3, loss3)
+MSE3 <- mean(loss3)
+paste('MSE Model 3 Fixed Scheme: ', MSE3)
+
+mpetest_3 <- lm(ferror3 ~1)
+summary(mpetest_3)
+IETest_3 <- lm(ferror3 ~ fcst3)
+summary(IETest_3) # Informal Efficiency Test Model 3
+
+# Model 4 (Average 4 - Simple Naive) -------------------------------------------
 fcst4 <- numeric(27)
 ferror4 <- numeric(27)
 loss4 <- numeric(27)
@@ -279,7 +327,9 @@ summary(IETest_4) # Informal Efficiency Test Model 4
 # include ARMA models and the simple average 4 naive model. Then use three linear combination schemes:
 # 1) an equal-weighted forecast,
 # 2) a forecast that weights each individual forecast by the inverse of its MSE,
-# 3) an OLS weighted optimal forecast. 
+# 3) an OLS weighted optimal forecast.
+
+# Example Model Following the Code in Lecture ----------------------------------
 g <- window(train_log, start = c(2020,12))
 comb_1 <- lm(g ~ fcst1 + fcst4)
 summary(comb_1)
