@@ -408,7 +408,7 @@ for (i in 1:27) {
 }
 
 MSE_iMSE <- mean(loss_iMSE)
-paste('MSE Combination Equal Weights Fcst:', MSE_iMSE)
+paste('MSE Inverse Fcst:', MSE_iMSE)
 
 mpetest_iMSE <- lm(ferror_iMSE ~1)
 summary(mpetest_iMSE)
