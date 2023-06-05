@@ -203,9 +203,11 @@ plot(log_arma21_6mth)
 
 # Setting up train (90%) and test (10%)
 # Logged:
-train_log <- ts_log[1:240]
-test_log <- ts_log[241:266]
-
+train_log <- ts(diff(log(fcst$TB3)), frequency = 12, start = c(2001,1))
+# Note: data runs through 2023,1
+# data starts at 2001, 1
+# 90% of data is 2001,1 through 2020,11
+# 10% of data is 2020,12 through 2023,3
 
 
 # Consider at Least 3 Models and Implement the Following -----------------------
@@ -216,45 +218,59 @@ test_log <- ts_log[241:266]
 # a simpler forecast that is calculated by averaging the last four observations (call it simple average
 # 4 naive model), ft,1 = (yt + yt−1 + yt−2 + yt−3) /4. 
 
-# NOTE: WE NEED TO PICK A COUPLE OF THE MODELS FROM ABOVE. I CHOSE THESE RANDOMLY
-# ARMA(2,1) Model
-arma12_train <- arima(train, order=c(1,0,2)) #create model with training set
-arma21_fcst <- forecast(arma21_train, h = 6) #create forecast
-errors_arma21 <- forecast::accuracy(arma21_fcst, test) %>% as.data.frame()
-mae_arma21 <- errors_arma21["MAE"][2,1]
-mae_arma21_train <- errors_arma21["MAE"][1,1]
+# NEED TO UPDATE for I in X to match dataset...
 
-# MA(2) Model
-ma2_train <- arima(train, order=c(0,0,2))
-ma2_fcst <- forecast(ma2_train, h = 6)
-errors_ma2 <- forecast::accuracy(ma2_fcst, test) %>% as.data.frame()
-mae_ma2 <- errors_ma2["MAE"][2,1]
-mae_ma2_train <- errors_ma2["MAE"][1,1]
+# Model 1 Fixed Scheme - ARMA 2 ---------------------
+# setting vectors = to 27 values because 10% of our data is 27 values
+fcst1 <- numeric(27)
+ferror1 <- numeric(27)
+loss1 <- numeric(27)
 
-# AR(1) Model
-ar1_train <- arima(train, order=c(1,0,0))
-ar1_fcst <- forecast(ar1_train, h=20)
-errors_ar1 <- forecast::accuracy(ar1_fcst, test) %>% as.data.frame()
-mae_ar1 <- errors_ar1["MAE"][2,1]
-mae_ar1_train<-errors_ar1["MAE"][1,1]
+model_1 <- dynlm(train_log ~ stats::lag(train_log, -1) + stats::lag(train_log, -2),
+               start = c(2001,1),
+               end = c(2020,11))
+summary(model_1)
 
-# Simple Average 4 Naive Model
-sa4n <- c(rep(NA, 1), tail(test, -1))
-forecast_naive <- mean(tail(test, 4))
-summary(sa4n)
+for (i in 1:27) {
+  fcst1[i] <- coef(model_1)[1] + coef(model_1)[2] * train_log[239+i] + coef(model_1)[3] * train_log[239+i] 
+  ferror1[i] <- train_log[239+i] - fcst1[i]
+  loss1[i] <- ferror1[i]^2
+}
+
+cbind(fcst1, ferror1, loss1)
+MSE1 <- mean(loss1)
+paste('MSE Model 1 Fixed Scheme: ', MSE1)
+
+mpetest_1 <- lm(ferror1 ~1)
+summary(mpetest_1)
+IETest_1 <- lm(ferror1 ~ fcst1)
+summary(IETest_1) # Informal Efficiency Test Model 1
 
 
-#Stats Test: Validate Results for 3 Models -------------------------------------
-# t testing errors
-error_arma21 <- arma21_fcst$residuals
-error_ar1 <- ar1_fcst$residuals
-error_ma2 <- ma2_fcst$residuals
 
-# output results
-t.test(error_arma21, error_ar1)
-t.test(error_arma21, error_ma2)
-t.test(error_ar1, error_ma2)
+# Model 4 (Average 4) -----------------
+fcst4 <- numeric(27)
+ferror4 <- numeric(27)
+loss4 <- numeric(27)
 
+for (i in 1:27){
+  fcst4[i] <- (train_log[239 + i] + 
+                 train_log[238 + i] +
+                 train_log[237 + i] +
+                 train_log[236 + i]
+                 ) / 4
+  ferror4[i] <- train_log[239+i] - fcst4[i]
+  loss4[i] <- ferror4[i] ^ 2
+}
+
+cbind(fcst4, ferror4, loss4)
+MSE4 <- mean(loss1)
+paste('MSE Model 4 - Simple Naive Fixed Scheme: ', MSE4)
+
+mpetest_4 <- lm(ferror4 ~1)
+summary(mpetest_4)
+IETest_4 <- lm(ferror4 ~ fcst4)
+summary(IETest_4) # Informal Efficiency Test Model 4
 
 
 # Combined Forecasts -----------------------------------------------------------
@@ -264,10 +280,25 @@ t.test(error_ar1, error_ma2)
 # 1) an equal-weighted forecast,
 # 2) a forecast that weights each individual forecast by the inverse of its MSE,
 # 3) an OLS weighted optimal forecast. 
+g <- window(train_log, start = c(2020,12))
+comb_1 <- lm(g ~ fcst1 + fcst4)
+summary(comb_1)
 
+fcst_comb_1 <- numeric(27)
+ferror_comb_1 <- numeric(27)
+loss_comb_1 <- numeric(27)
 
+fcst_comb_1 <- comb_1$fitted.values
+ferror_comb_1 <- g - fcst_comb_1
+loss_comb_1 <- ferror_comb_1 ^ 2
 
+MSE_comb_1 <- mean(loss_comb_1)
+paste('MSE Combination 1:', MSE_comb_1)
 
+mpetest_comb_1 <- lm(ferror_comb_1 ~1)
+summary(mpetest_comb_1)
+IETest_comb_1 <- lm(ferror_comb_1 ~ fcst_comb_1)
+summary(IETest_comb_1) # Informal Efficiency Test Combination Model 1
 
 
 # END OF PART 2
