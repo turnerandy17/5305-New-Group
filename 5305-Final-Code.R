@@ -244,16 +244,16 @@ summary(mpetest_1)
 IETest_1 <- lm(ferror1 ~ fcst1)
 summary(IETest_1) # Informal Efficiency Test Model 1
 
-# Model 2 Fixed Scheme -  ------------------------------------------------
+# Model 2 Fixed Scheme - AR 1 ------------------------------------------------
 # setting vectors = to 27 values because 10% of our data is 27 values
 fcst2 <- numeric(27)
 ferror2 <- numeric(27)
 loss2 <- numeric(27)
 
-model_2 <- dynlm(train_log ~ stats::lag(train_log, -1) + stats::lag(train_log, -2),
+model_2 <- dynlm(train_log ~ stats::lag(train_log, -1),
                  start = c(2001,1),
                  end = c(2020,11))
-summary(model_1)
+summary(model_2)
 
 for (i in 1:27) {
   fcst2[i] <- coef(model_1)[1] + coef(model_1)[2] * train_log[239+i] + coef(model_1)[3] * train_log[239+i] 
@@ -263,20 +263,20 @@ for (i in 1:27) {
 
 cbind(fcst2, ferror2, loss2)
 MSE2 <- mean(loss2)
-paste('MSE Model 1 Fixed Scheme: ', MSE2)
+paste('MSE Model 2 Fixed Scheme: ', MSE2)
 
 mpetest_2 <- lm(ferror2 ~ 1)
 summary(mpetest_2)
 IETest_2 <- lm(ferror2 ~ fcst2)
 summary(IETest_2) # Informal Efficiency Test Model 2
 
-# Model 3 Fixed Scheme -  ------------------------------------------------
+# Model 3 Fixed Scheme - ARMA 1,1 ------------------------------------------------
 # setting vectors = to 27 values because 10% of our data is 27 values
 fcst3 <- numeric(27)
 ferror3 <- numeric(27)
 loss3 <- numeric(27)
 
-model_3 <- dynlm(train_log ~ stats::lag(train_log, -1) + stats::lag(train_log, -2),
+model_3 <- dynlm(train_log ~ stats::lag(train_log, -1) + stats::lag(train_log, -1),
                  start = c(2001,1),
                  end = c(2020,11))
 summary(model_3)
