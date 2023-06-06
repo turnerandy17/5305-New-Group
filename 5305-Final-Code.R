@@ -111,7 +111,7 @@ Box.test(ts_log, type = 'Ljung-Box')
 # For the ACF and PACF interpretations, both ACF and PACF plots show significant spikes at different lags,
 # which suggests a possible ARMA model for our log time series.
 
-# PART 1 Forecast Models (lines 114:170)----------------------------------------
+# PART 1 Forecast Models (lines 114:194)----------------------------------------
 # Based on the ACF and PACF, you will choose three linear models (MA, AR, or ARMA) and estimate them.
 # You will present the estimation results, show the ACF and PACF correlograms of residuals from
 # each specification, and verify they are white noise using Q-Test.
@@ -132,6 +132,12 @@ bic_arma11 <- BIC(log_arma11)
 # 6 month fcst
 log_arma11_6mth <- forecast(log_arma11, h = 6)
 plot(log_arma11_6mth)
+coef_est_log_arma11 <- coef(log_arma11)
+# Obtain the standard errors of the coefficient estimates
+coef_se_log_arma11 <- sqrt(diag(vcov(log_arma11)))
+# Calculate the t-ratios
+t_ratios_log_arma11 <- coef_est_log_arma11  / coef_se_log_arma11
+paste('T-ratios Logged Model ARMA 1,1: ', t_ratios_log_arma11)
 
 # Create ARMA(2,2) model
 log_arma22 <- arima(ts_log, order=c(2,0,2))
@@ -143,6 +149,12 @@ bic_arma22 <- BIC(log_arma22)
 # 6 month fcst
 log_arma22_6mth <- forecast(log_arma22, h = 6)
 plot(log_arma22_6mth)
+coef_est_log_arma22 <- coef(log_arma22)
+# Obtain the standard errors of the coefficient estimates
+coef_se_log_arma22 <- sqrt(diag(vcov(log_arma22)))
+# Calculate the t-ratios
+t_ratios_log_arma22 <- coef_est_log_arma22  / coef_se_log_arma22
+paste('T-ratios Logged Model ARMA 2,2: ', t_ratios_log_arma22)
 
 # Create ARMA(1,2) model
 log_arma12 <- arima(ts_log, order=c(1,0,2))
@@ -154,6 +166,12 @@ bic_arma12 <- BIC(log_arma12)
 # 6 month fcst
 log_arma12_6mth <- forecast(log_arma12, h = 6)
 plot(log_arma12_6mth)
+coef_est_log_arma12 <- coef(log_arma12)
+# Obtain the standard errors of the coefficient estimates
+coef_se_log_arma12 <- sqrt(diag(vcov(log_arma12)))
+# Calculate the t-ratios
+t_ratios_log_arma12 <- coef_est_log_arma12  / coef_se_log_arma12
+paste('T-ratios Logged Model ARMA 1,2: ', t_ratios_log_arma12)
 
 # Create ARMA(2,1) model
 log_arma21 <- arima(ts_log, order=c(2,0,1))
@@ -165,6 +183,12 @@ bic_arma21 <- BIC(log_arma21)
 # 6 month fcst
 log_arma21_6mth <- forecast(log_arma21, h = 6)
 plot(log_arma21_6mth)
+coef_est_log_arma21 <- coef(log_arma21)
+# Obtain the standard errors of the coefficient estimates
+coef_se_log_arma21 <- sqrt(diag(vcov(log_arma21)))
+# Calculate the t-ratios
+t_ratios_log_arma21 <- coef_est_log_arma21  / coef_se_log_arma21
+paste('T-ratios Logged Model ARMA 2,1: ', t_ratios_log_arma21)
 
 # Model Estimates Table --------------------------------------------------------
 # This part was built in our slide deck...
@@ -454,3 +478,4 @@ IETest_ols <- lm(ferror_ols ~ fcst_ols)
 summary(IETest_ols) # Informal Efficiency Test Combination Equal Weights
 
 # END OF PART 2
+
